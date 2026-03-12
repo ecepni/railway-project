@@ -1,0 +1,36 @@
+﻿@page "/facilitytypes"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Facility Types</PageTitle>
+
+<h1>Facility Types</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Type Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var type in facilityTypes)
+        {
+                <tr>
+                    <td>@type.FacilityTypeID</td>
+                    <td>@type.Name</td>
+                </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<FacilityType> facilityTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        facilityTypes = await context.FacilityType.ToListAsync();
+    }
+}

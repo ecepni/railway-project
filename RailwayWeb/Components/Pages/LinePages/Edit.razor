@@ -1,0 +1,98 @@
+﻿@page "/lines/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Line</PageTitle>
+
+<h1>Edit Line</h1>
+
+<h4>Line</h4>
+<hr />
+@if (Line is null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm Method="Post" Model="Line" OnValidSubmit="UpdateLine" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <input type="hidden" name="Line.LineID" value="@Line.LineID" />
+
+                    <div class="mb-3">
+                        <label class="form-label">ID (Read Only):</label>
+                        <input value="@Line.LineID" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Operating Company ID:</label>
+                        <InputNumber id="company" @bind-Value="Line.OperatingCompanyID" class="form-control" />
+                        <ValidationMessage For="() => Line.OperatingCompanyID" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="start" class="form-label">Start Facility ID:</label>
+                        <InputNumber id="start" @bind-Value="Line.StartFacilityID" class="form-control" />
+                        <ValidationMessage For="() => Line.StartFacilityID" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="end" class="form-label">End Facility ID:</label>
+                        <InputNumber id="end" @bind-Value="Line.EndFacilityID" class="form-control" />
+                        <ValidationMessage For="() => Line.EndFacilityID" class="text-danger" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </EditForm>
+            </div>
+        </div>
+}
+
+<div>
+    <a href="/lines">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Line? Line { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Line ??= await context.Line.FirstOrDefaultAsync(m => m.LineID == Id);
+
+        if (Line is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateLine()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+      
+        var existingLine = await context.Line.FindAsync(Line!.LineID);
+
+        if (existingLine != null)
+        {
+          
+            existingLine.OperatingCompanyID = Line.OperatingCompanyID;
+            existingLine.StartFacilityID = Line.StartFacilityID;
+            existingLine.EndFacilityID = Line.EndFacilityID;
+
+            
+            await context.SaveChangesAsync();
+        }
+
+        NavigationManager.NavigateTo("/lines");
+    }
+}

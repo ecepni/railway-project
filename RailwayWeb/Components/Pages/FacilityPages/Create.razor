@@ -1,0 +1,40 @@
+﻿@page "/facilities/create"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Facility</PageTitle>
+<h1>Create Facility</h1>
+
+<EditForm Model="Facility" OnValidSubmit="AddFacility" FormName="create">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label>Name:</label>
+        <InputText @bind-Value="Facility.Name" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>City:</label>
+        <InputText @bind-Value="Facility.City" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Capacity:</label>
+        <InputNumber @bind-Value="Facility.Capacity" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Type ID (1-10):</label>
+        <InputNumber @bind-Value="Facility.FacilityTypeID" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm] public Facility Facility { get; set; } = new();
+    async Task AddFacility()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Facility.Add(Facility);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/facilities");
+    }
+}

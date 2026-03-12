@@ -1,0 +1,106 @@
+﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Operational Dashboard</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Operational Dashboard</h1>
+        <span class="badge bg-primary">System Online</span>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Wagon Inventory by Type</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-end justify-content-around" style="height: 250px; border-bottom: 2px solid #dee2e6; padding-bottom: 10px;">
+                @foreach (var item in chartData)
+                {
+                        <div class="text-center" style="width: 85px;">
+                            <div class="bg-primary shadow-sm" 
+                                 style="height: @(item.Count * 25)px; min-height: 10px; border-radius: 4px 4px 0 0;"
+                                 title="Count: @item.Count">
+                                 <small class="text-white fw-bold">@item.Count</small>
+                            </div>
+                            <div style="font-size: 0.75rem; margin-top: 8px; font-weight: 600; transform: rotate(-30deg); white-space: nowrap;">
+                            @item.TypeName
+                            </div>
+                        </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <h6>Total Wagons</h6>
+                    <h2>@totalWagons</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <h6>Total Companies</h6>
+                    <h2>@totalCompanies</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <h6>Active Lines</h6>
+                    <h2>@totalLines</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <h6>Facilities</h6>
+                    <h2>@totalFacilities</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<WagonChartData> chartData = new();
+    private int totalWagons;
+    private int totalCompanies;
+    private int totalLines;
+    private int totalFacilities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var rawWagons = await context.Wagon.ToListAsync();
+
+        chartData = rawWagons
+            .GroupBy(w => w.WagonTypeID)
+            .Select(g => new WagonChartData
+                {
+                    TypeName = "Type " + g.Key.ToString(),
+                    Count = g.Count()
+                })
+            .ToList();
+
+        totalWagons = rawWagons.Count;
+        totalCompanies = await context.OperatingCompany.CountAsync();
+        totalLines = await context.Line.CountAsync();
+        totalFacilities = await context.Facility.CountAsync();
+    }
+
+    public class WagonChartData
+    {
+        public string TypeName { get; set; } = "";
+        public int Count { get; set; }
+    }
+}

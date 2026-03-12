@@ -1,0 +1,72 @@
+﻿@page "/operatingcompanies/delete"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete Operating Company</PageTitle>
+
+<h1>Delete Operating Company</h1>
+
+@if (company == null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <div class="alert alert-danger">
+            <h3>Are you sure?</h3>
+            <p>You are about to delete <b>@company.Name</b>. This action will delete all related data (Lines, Facilities, etc.).</p>
+        </div>
+
+        <EditForm Model="company" OnValidSubmit="HandleDelete" FormName="deleteCompanyGarantili">
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a href="/operatingcompanies" class="btn btn-secondary">Back to List</a>
+        </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery] public int Id { get; set; }
+    [SupplyParameterFromForm] public OperatingCompany? company { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        company ??= await context.OperatingCompany.FirstOrDefaultAsync(m => m.OperatingCompanyID == Id);
+
+        if (company == null)
+        {
+            NavigationManager.NavigateTo("/operatingcompanies");
+        }
+    }
+
+    async Task HandleDelete()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var lines = await context.Line.Where(l => l.OperatingCompanyID == Id).ToListAsync();
+        foreach (var l in lines)
+        {
+            var segments = await context.LineSegment.Where(s => s.LineID == l.LineID).ToListAsync();
+            context.LineSegment.RemoveRange(segments);
+        }
+        context.Line.RemoveRange(lines);
+
+        var facilities = await context.Facility.Where(f => f.OperatingCompanyID == Id).ToListAsync();
+        context.Facility.RemoveRange(facilities);
+
+        var operators = await context.Operator.Where(o => o.WorkingCompanyID == Id).ToListAsync();
+        foreach (var o in operators)
+        {
+            var wagons = await context.Wagon.Where(w => w.OperatorID == o.OperatorID).ToListAsync();
+            context.Wagon.RemoveRange(wagons);
+        }
+        context.Operator.RemoveRange(operators);
+
+        var toDelete = await context.OperatingCompany.FindAsync(Id);
+        if (toDelete != null) context.OperatingCompany.Remove(toDelete);
+
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/operatingcompanies");
+    }
+}

@@ -1,0 +1,60 @@
+﻿@page "/facilities/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Facility</PageTitle>
+<h1>Edit Facility</h1>
+
+@if (Facility == null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <EditForm Model="Facility" OnValidSubmit="UpdateFacility" FormName="editFacilityForm">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label>Name:</label>
+                <InputText @bind-Value="Facility.Name" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>City:</label>
+                <InputText @bind-Value="Facility.City" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>Capacity:</label>
+                <InputNumber @bind-Value="Facility.Capacity" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/facilities" class="btn btn-secondary">Cancel</a>
+        </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery] public int Id { get; set; }
+    [SupplyParameterFromForm] public Facility? Facility { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Facility ??= await context.Facility.FindAsync(Id);
+    }
+
+    async Task UpdateFacility()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var existing = await context.Facility.FindAsync(Id);
+
+        if (existing != null)
+        {
+            existing.Name = Facility!.Name;
+            existing.City = Facility.City;
+            existing.Capacity = Facility.Capacity;
+
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo("/facilities");
+    }
+}

@@ -1,0 +1,62 @@
+﻿@page "/wagons/details"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Wagon Details</PageTitle>
+
+<h1>Wagon Details</h1>
+
+<div>
+    <h4>Wagon</h4>
+    <hr />
+    @if (wagon is null)
+    {
+            <p><em>Loading...</em></p>
+    }
+    else
+    {
+            <dl class="row">
+                <dt class="col-sm-2">ID</dt>
+                <dd class="col-sm-10">@wagon.WagonID</dd>
+
+                <dt class="col-sm-2">Payload</dt>
+                <dd class="col-sm-10">@wagon.Payload</dd>
+
+                <dt class="col-sm-2">Volume</dt>
+                <dd class="col-sm-10">@wagon.Volume</dd>
+
+                <dt class="col-sm-2">Dimensions</dt>
+                <dd class="col-sm-10">@wagon.Dimensions</dd>
+
+                <dt class="col-sm-2">Weight</dt>
+                <dd class="col-sm-10">@wagon.Weight</dd>
+
+                <dt class="col-sm-2">Tare</dt>
+                <dd class="col-sm-10">@wagon.Tare</dd>
+            </dl>
+            <div>
+                <a href="@($"/wagons/edit?id={wagon.WagonID}")">Edit</a> |
+                <a href="/wagons">Back to List</a>
+            </div>
+    }
+</div>
+
+@code {
+    private Wagon? wagon;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        wagon = await context.Wagon.FirstOrDefaultAsync(m => m.WagonID == Id);
+
+        if (wagon is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

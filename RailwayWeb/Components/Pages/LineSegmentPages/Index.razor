@@ -1,0 +1,38 @@
+﻿@page "/linesegments"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using RailwayWeb.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Line Segments</PageTitle>
+
+<h1>Line Segments</h1>
+
+<p>
+    <a href="linesegments/create" class="btn btn-primary">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.LineSegment">
+    <PropertyColumn Property="ls => ls.SegmentID" Title="ID" />
+    <PropertyColumn Property="ls => ls.Location" Title="Location" />
+    <PropertyColumn Property="ls => ls.Type" Title="Type" />
+    <PropertyColumn Property="ls => ls.SpeedLimit" Title="Speed Limit" />
+    <PropertyColumn Property="ls => ls.LineID" Title="Line ID" />
+
+    <TemplateColumn Context="ls">
+        <a href="@($"linesegments/edit?id={ls.SegmentID}")">Edit</a> |
+        <a href="@($"linesegments/delete?id={ls.SegmentID}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private RailwayWebContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

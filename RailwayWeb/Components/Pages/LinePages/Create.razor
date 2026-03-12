@@ -1,0 +1,61 @@
+﻿@page "/lines/create"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Line</PageTitle>
+
+<h1>Create New Line</h1>
+
+<h4>Line Details</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Method="Post" Model="Line" OnValidSubmit="AddLine" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="company" class="form-label">Operating Company ID:</label> 
+                <InputNumber id="company" @bind-Value="Line.OperatingCompanyID" class="form-control" /> 
+                <ValidationMessage For="() => Line.OperatingCompanyID" class="text-danger" /> 
+                <small class="text-muted">Enter an existing Company ID (e.g., 1, 2...)</small>
+            </div>        
+
+            <div class="mb-3">
+                <label for="start" class="form-label">Start Facility ID:</label> 
+                <InputNumber id="start" @bind-Value="Line.StartFacilityID" class="form-control" /> 
+                <ValidationMessage For="() => Line.StartFacilityID" class="text-danger" /> 
+                <small class="text-muted">Enter an existing Facility ID</small>
+            </div>  
+
+             <div class="mb-3">
+                <label for="end" class="form-label">End Facility ID:</label> 
+                <InputNumber id="end" @bind-Value="Line.EndFacilityID" class="form-control" /> 
+                <ValidationMessage For="() => Line.EndFacilityID" class="text-danger" /> 
+                <small class="text-muted">Enter an existing Facility ID</small>
+            </div> 
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/lines">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public Line Line { get; set; } = new();
+
+    public async Task AddLine()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        context.Line.Add(Line);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/lines");
+    }
+}

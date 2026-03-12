@@ -1,0 +1,51 @@
+﻿@page "/operators/create"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Operator</PageTitle>
+
+<h1>Create New Operator</h1>
+
+<h4>Operator Details</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Method="Post" Model="Operator" OnValidSubmit="AddOperator" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label> 
+                <InputText id="name" @bind-Value="Operator.Name" class="form-control" /> 
+                <ValidationMessage For="() => Operator.Name" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="companyid" class="form-label">Working Company ID:</label> 
+                <InputNumber id="companyid" @bind-Value="Operator.WorkingCompanyID" class="form-control" /> 
+                <ValidationMessage For="() => Operator.WorkingCompanyID" class="text-danger" /> 
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/operators">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public Operator Operator { get; set; } = new();
+
+    public async Task AddOperator()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Operator.Add(Operator);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/operators");
+    }
+}

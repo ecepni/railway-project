@@ -1,0 +1,82 @@
+﻿@page "/linesegments/create"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Segment</PageTitle>
+
+<h1>Create New Segment</h1>
+
+<h4>Line Segment</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Method="Post" Model="LineSegment" OnValidSubmit="AddLineSegment" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="location" class="form-label">Location:</label> 
+                <InputText id="location" @bind-Value="LineSegment.Location" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.Location" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="type" class="form-label">Type:</label> 
+                <InputText id="type" @bind-Value="LineSegment.Type" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.Type" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="electrified" class="form-label">Electrified (1 or 0):</label> 
+                <InputNumber id="electrified" @bind-Value="LineSegment.Electrified" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.Electrified" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="weight" class="form-label">Max Weight:</label> 
+                <InputNumber id="weight" @bind-Value="LineSegment.Max_Weight" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.Max_Weight" class="text-danger" /> 
+            </div>
+
+             <div class="mb-3">
+                <label for="speed" class="form-label">Speed Limit:</label> 
+                <InputNumber id="speed" @bind-Value="LineSegment.SpeedLimit" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.SpeedLimit" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="length" class="form-label">Length:</label> 
+                <InputNumber id="length" @bind-Value="LineSegment.Length" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.Length" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="lineid" class="form-label">Line ID:</label> 
+                <InputNumber id="lineid" @bind-Value="LineSegment.LineID" class="form-control" /> 
+                <ValidationMessage For="() => LineSegment.LineID" class="text-danger" /> 
+                <small class="text-muted">Enter an existing Line ID (check Lines page).</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/linesegments">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public LineSegment LineSegment { get; set; } = new();
+
+    public async Task AddLineSegment()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.LineSegment.Add(LineSegment);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/linesegments");
+    }
+}

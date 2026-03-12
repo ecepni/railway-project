@@ -1,0 +1,85 @@
+﻿@page "/operators/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Operator</PageTitle>
+
+<h1>Edit Operator</h1>
+
+<h4>Operator</h4>
+<hr />
+@if (Operator is null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm Method="Post" Model="Operator" OnValidSubmit="UpdateOperator" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <input type="hidden" name="Operator.OperatorID" value="@Operator.OperatorID" />
+
+                    <div class="mb-3">
+                        <label class="form-label">ID (Read Only):</label>
+                        <input value="@Operator.OperatorID" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label> 
+                        <InputText id="name" @bind-Value="Operator.Name" class="form-control" /> 
+                        <ValidationMessage For="() => Operator.Name" class="text-danger" /> 
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="companyid" class="form-label">Company ID:</label> 
+                        <InputNumber id="companyid" @bind-Value="Operator.WorkingCompanyID" class="form-control" /> 
+                        <ValidationMessage For="() => Operator.WorkingCompanyID" class="text-danger" /> 
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </EditForm>
+            </div>
+        </div>
+}
+
+<div>
+    <a href="/operators">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Operator? Operator { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Operator ??= await context.Operator.FirstOrDefaultAsync(m => m.OperatorID == Id);
+
+        if (Operator is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateOperator()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var existing = await context.Operator.FindAsync(Operator!.OperatorID);
+
+        if (existing != null)
+        {
+            existing.Name = Operator.Name;
+            existing.WorkingCompanyID = Operator.WorkingCompanyID;
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo("/operators");
+    }
+}

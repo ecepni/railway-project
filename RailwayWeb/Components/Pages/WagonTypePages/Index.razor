@@ -1,0 +1,47 @@
+﻿@page "/wagontypes"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Wagon Types</PageTitle>
+
+<h1>Wagon Types</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Type Name</th>
+            <th>Is Electrified?</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var type in wagonTypes)
+        {
+                <tr>
+                    <td>@type.WagonTypeID</td>
+                    <td>@type.Name</td>
+                    <td>
+                    @if (type.Electrified == 1)
+                    {
+                                <span class="badge bg-success">Yes</span>
+                    }
+                    else
+                    {
+                                <span class="badge bg-secondary">No</span>
+                    }
+                    </td>
+                </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<WagonType> wagonTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        wagonTypes = await context.WagonType.ToListAsync();
+    }
+}

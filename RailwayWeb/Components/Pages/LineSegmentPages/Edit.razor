@@ -1,0 +1,101 @@
+﻿@page "/linesegments/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Segment</PageTitle>
+
+<h1>Edit Segment</h1>
+
+<h4>Line Segment</h4>
+<hr />
+@if (LineSegment is null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm Method="Post" Model="LineSegment" OnValidSubmit="UpdateLineSegment" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <input type="hidden" name="LineSegment.SegmentID" value="@LineSegment.SegmentID" />
+
+                    <div class="mb-3">
+                        <label class="form-label">ID (Read Only):</label>
+                        <input value="@LineSegment.SegmentID" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location:</label> 
+                        <InputText id="location" @bind-Value="LineSegment.Location" class="form-control" /> 
+                        <ValidationMessage For="() => LineSegment.Location" class="text-danger" /> 
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Type:</label> 
+                        <InputText id="type" @bind-Value="LineSegment.Type" class="form-control" /> 
+                        <ValidationMessage For="() => LineSegment.Type" class="text-danger" /> 
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="speed" class="form-label">Speed Limit:</label> 
+                        <InputNumber id="speed" @bind-Value="LineSegment.SpeedLimit" class="form-control" /> 
+                        <ValidationMessage For="() => LineSegment.SpeedLimit" class="text-danger" /> 
+                    </div>
+
+                     <div class="mb-3">
+                        <label for="lineid" class="form-label">Line ID:</label> 
+                        <InputNumber id="lineid" @bind-Value="LineSegment.LineID" class="form-control" /> 
+                        <ValidationMessage For="() => LineSegment.LineID" class="text-danger" /> 
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </EditForm>
+            </div>
+        </div>
+}
+
+<div>
+    <a href="/linesegments">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public LineSegment? LineSegment { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        LineSegment ??= await context.LineSegment.FirstOrDefaultAsync(m => m.SegmentID == Id);
+
+        if (LineSegment is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateLineSegment()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var existing = await context.LineSegment.FindAsync(LineSegment!.SegmentID);
+
+        if (existing != null)
+        {
+            existing.Location = LineSegment.Location;
+            existing.Type = LineSegment.Type;
+            existing.SpeedLimit = LineSegment.SpeedLimit;
+            existing.LineID = LineSegment.LineID;
+            
+
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo("/linesegments");
+    }
+}

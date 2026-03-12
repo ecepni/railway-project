@@ -1,0 +1,42 @@
+﻿@page "/wagons"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using RailwayWeb.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Wagon List</PageTitle>
+
+<h1>Wagon List</h1>
+
+<p>
+    <a href="wagons/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Wagon">
+
+    <PropertyColumn Property="w => w.WagonID" Title="WagonID" />
+    <PropertyColumn Property="w => w.Payload" Title="Payload" />
+    <PropertyColumn Property="w => w.Volume" Title="Volume" />
+    <PropertyColumn Property="w => w.Dimensions" Title="Dimensions" />
+    <PropertyColumn Property="w => w.Weight" Title="Weight" />
+    <PropertyColumn Property="w => w.Tare" Title="Tare" />
+
+    <TemplateColumn Context="w">
+        <a href="@($"wagons/edit?id={w.WagonID}")">Edit</a> |
+        <a href="@($"wagons/details?id={w.WagonID}")">Details</a> |
+        <a href="@($"wagons/delete?id={w.WagonID}")">Delete</a>
+    </TemplateColumn>
+
+</QuickGrid>
+
+@code {
+    private RailwayWebContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

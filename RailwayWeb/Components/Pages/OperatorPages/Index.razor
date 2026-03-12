@@ -1,0 +1,36 @@
+﻿@page "/operators"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using RailwayWeb.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+
+<PageTitle>Operators</PageTitle>
+
+<h1>Operators</h1>
+
+<p>
+    <a href="operators/create" class="btn btn-primary">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Operator">
+    <PropertyColumn Property="o => o.OperatorID" Title="ID" />
+    <PropertyColumn Property="o => o.Name" Title="Operator Name" />
+    <PropertyColumn Property="o => o.WorkingCompanyID" Title="Company ID" />
+
+    <TemplateColumn Context="o">
+        <a href="@($"operators/edit?id={o.OperatorID}")">Edit</a> |
+        <a href="@($"operators/delete?id={o.OperatorID}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private RailwayWebContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

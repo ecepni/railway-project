@@ -1,0 +1,122 @@
+﻿@page "/wagons/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit Wagon</h1>
+
+<h4>Edit</h4>
+<hr />
+@if (Wagon is null)
+{
+        <p><em>Loading...</em></p>
+}
+else
+{
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm Method="Post" Model="Wagon" OnValidSubmit="UpdateWagon" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <input type="hidden" name="Wagon.WagonID" value="@Wagon.WagonID" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Wagon ID (Read Only):</label>
+                        <input value="@Wagon.WagonID" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payload" class="form-label">Payload:</label>
+                        <InputNumber id="payload" @bind-Value="Wagon.Payload" class="form-control" />
+                        <ValidationMessage For="() => Wagon.Payload" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="volume" class="form-label">Volume:</label>
+                        <InputNumber id="volume" @bind-Value="Wagon.Volume" class="form-control" />
+                        <ValidationMessage For="() => Wagon.Volume" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dimensions" class="form-label">Dimensions:</label>
+                        <InputText id="dimensions" @bind-Value="Wagon.Dimensions" class="form-control" />
+                        <ValidationMessage For="() => Wagon.Dimensions" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="weight" class="form-label">Weight:</label>
+                        <InputNumber id="weight" @bind-Value="Wagon.Weight" class="form-control" />
+                        <ValidationMessage For="() => Wagon.Weight" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tare" class="form-label">Tare:</label>
+                        <InputNumber id="tare" @bind-Value="Wagon.Tare" class="form-control" />
+                        <ValidationMessage For="() => Wagon.Tare" class="text-danger" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </EditForm>
+            </div>
+        </div>
+}
+
+<div>
+    <a href="/wagons">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Wagon? Wagon { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Wagon ??= await context.Wagon.FirstOrDefaultAsync(m => m.WagonID == Id);
+
+        if (Wagon is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+   
+    public async Task UpdateWagon()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+       
+        context.Attach(Wagon!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!WagonExists(Wagon!.WagonID))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/wagons");
+    }
+
+    private bool WagonExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Wagon.Any(e => e.WagonID == id);
+    }
+}

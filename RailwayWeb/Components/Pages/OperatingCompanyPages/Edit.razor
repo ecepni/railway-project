@@ -1,0 +1,42 @@
+﻿@page "/operatingcompanies/edit"
+@using Microsoft.EntityFrameworkCore
+@using RailwayWeb.Data
+@inject IDbContextFactory<RailwayWebContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<h1>Edit Company</h1>
+
+@if (OperatingCompany != null)
+{
+        <EditForm Model="OperatingCompany" OnValidSubmit="UpdateCompany" FormName="editCompany">
+            <div class="mb-3">
+                <label>Company Name:</label>
+                <InputText @bind-Value="OperatingCompany.Name" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="/operatingcompanies" class="btn btn-secondary">Cancel</a>
+        </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery] public int Id { get; set; }
+    [SupplyParameterFromForm] public OperatingCompany? OperatingCompany { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        OperatingCompany ??= await context.OperatingCompany.FindAsync(Id);
+    }
+
+    async Task UpdateCompany()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var existing = await context.OperatingCompany.FindAsync(Id);
+        if (existing != null)
+        {
+            existing.Name = OperatingCompany!.Name;
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo("/operatingcompanies");
+    }
+}
